@@ -3,6 +3,7 @@ import subprocess, os
 from modules.transcribe import transcribe
 from modules.summarize  import summarize
 from modules.search import build_faiss_index, query_faiss
+from modules.query_parser import extract_keywords
 import openai
 openai.api_key = 'openai-api-key'
 def generate_answer_with_llm(query, context):
@@ -45,10 +46,10 @@ while True:
 
 
     if event == "Search":
-    query_text = values["-SEARCH-"].strip()
-    if not query_text:
-        sg.popup("Please enter a search query.")
-        continue
+        query_text = values["-SEARCH-"].strip()
+        if not query_text:
+            sg.popup("Please enter a search query.")
+            continue
 
     # Step 1: Parse the query for keywords (dates, actions, topics)
     sg.popup("Parsing query...")
