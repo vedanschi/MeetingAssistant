@@ -24,22 +24,38 @@ while True:
 
 
     if event == "Search":
-        query_text = values["-SEARCH-"].strip()
-        if not query_text:
-            sg.popup("Please enter a search query.")
-            continue
+    query_text = values["-SEARCH-"].strip()
+    if not query_text:
+        sg.popup("Please enter a search query.")
+        continue
 
-        sg.popup("Searching…")
-        results = query_faiss(query_text, k=5)
-        if not results:
-            window["-RESULTS-"].update("No matching meetings found.")
-        else:
-            # Build a display string
-            text = ""
-            for r in results:
-                date = f"{r['year']}-{r['month']}-{r['slug']}"
-                text += f"{date}  (score: {r['score']:.2f})\n"
-            window["-RESULTS-"].update(text)
+    # Step 1: Parse the query for keywords (dates, actions, topics)
+    sg.popup("Parsing query...")
+    keywords = extract_keywords(query_text)
+
+    # Display parsed keywords
+    date_text = ", ".join(keywords["dates"]) if keywords["dates"] else "No date found."
+    action_text = ", ".join(keywords["actions"]) if keywords["actions"] else "No actions found."
+    topic_text = ", ".join(keywords["topics"]) if keywords["topics"] else "No topics found."
+
+    result_text = f"Dates: {date_text}\nActions: {action_text}\nTopics: {topic_text}"
+
+    # Update the result panel with parsed query information
+    window["-RESULTS-"].update(result_text)
+
+    # Step 2: Perform FAISS search
+    sg.popup("Searching…")
+    results = query_faiss(query_text, k=5)
+    if not results:
+        window["-RESULTS-"].update("No matching meetings found.")
+    else:
+        # Build a display string for FAISS results
+        text = ""
+        for r in results:
+            date = f"{r['year']}-{r['month']}-{r['slug']}"
+            text += f"{date}  (score: {r['score']:.2f})\n"
+        window["-RESULTS-"].update(text)
+
 
     if event == "Process":
         raw_path = values["-FILE-"]
