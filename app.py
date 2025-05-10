@@ -111,4 +111,9 @@ while True:
 
         sg.popup(f"Done!\nTranscript: {txt}\nSummary: {summ}")
 
+    if event == "Refresh All Indexes":
+        sg.popup("Refreshing all FAISS indexes…")
+        build_faiss_index()  
+        sg.popup("All indexes have been refreshed.")
+
 window.close()
