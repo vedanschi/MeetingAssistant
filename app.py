@@ -2,12 +2,16 @@ import PySimpleGUI as sg
 import subprocess, os
 from modules.transcribe import transcribe
 from modules.summarize  import summarize
+from modules.search import build_faiss_index, query_faiss
+
 
 # 1️⃣ Define the window layout
 layout = [
     [sg.Text("Meeting Assistant")],
-    [sg.Input(key="-FILE-"), sg.FileBrowse(file_types=(("Audio/Video","*.wav;*.mp4"),("All","*.*")))],
-    [sg.Button("Process"), sg.Exit()]
+    [sg.Input(key="-FILE-"), sg.FileBrowse(file_types=(("Audio/Video", "*.wav;*.mp4"), ("All", "*.*")))],
+    [sg.Button("Process"), sg.Button("Search Index"), sg.Exit()],
+    [sg.Text("Query:"), sg.Input(key="-SEARCH-"), sg.Button("Search")],
+    [sg.Multiline(size=(70, 10), key="-RESULTS-")],
 ]
 
 # 2️⃣ Create the window
@@ -65,6 +69,10 @@ while True:
         # Summarize
         sg.popup("Summarizing…")
         summarize(str(txt), str(summ))
+
+        # 🧠 Build FAISS index after summarization
+        sg.popup("Updating search index…")
+        build_faiss_index()
 
         sg.popup(f"Done!\nTranscript: {txt}\nSummary: {summ}")
 
