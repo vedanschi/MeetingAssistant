@@ -3,6 +3,27 @@ import subprocess, os
 from modules.transcribe import transcribe
 from modules.summarize  import summarize
 from modules.search import build_faiss_index, query_faiss
+import openai
+openai.api_key = 'openai-api-key'
+def generate_answer_with_llm(query, context):
+    """
+    Generates an answer from the LLM (e.g., GPT-3) based on the retrieved context.
+    """
+    prompt = f"Question: {query}\n\nContext: {context}\n\nAnswer:"
+    
+    
+    response = openai.Completion.create(
+        engine="text-davinci-003", # Using "text-davinci-003" model for high-quality natural language processing
+        prompt=prompt,
+        max_tokens=150,
+        temperature=0.7
+    )
+    
+
+    answer = response.choices[0].text.strip()
+    return answer
+
+
 
 
 # 1️⃣ Define the window layout
@@ -49,12 +70,10 @@ while True:
     if not results:
         window["-RESULTS-"].update("No matching meetings found.")
     else:
-        # Build a display string for FAISS results
-        text = ""
-        for r in results:
-            date = f"{r['year']}-{r['month']}-{r['slug']}"
-            text += f"{date}  (score: {r['score']:.2f})\n"
-        window["-RESULTS-"].update(text)
+        context = "\n".join([r['content'] for r in results[:3]])  
+        sg.popup("Generating answer...")
+        answer = generate_answer_with_llm(query_text, context)
+        window["-RESULTS-"].update(answer)
 
 
     if event == "Process":
