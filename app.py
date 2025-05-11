@@ -11,18 +11,18 @@ def generate_answer_with_llm(query, context):
     Generates an answer from the LLM (e.g., GPT-3) based on the retrieved context.
     """
     prompt = f"Question: {query}\n\nContext: {context}\n\nAnswer:"
-    
-    
-    response = openai.Completion.create(
-        engine="text-davinci-003", # Using "text-davinci-003" model for high-quality natural language processing
-        prompt=prompt,
-        max_tokens=150,
-        temperature=0.7
-    )
-    
+    try:
+        response = openai.Completion.create(
+            engine="text-davinci-003",
+            prompt=prompt,
+            max_tokens=150,
+            temperature=0.7
+        )
+        answer = response.choices[0].text.strip()
+        return answer
+    except Exception as e:
+        return f"[ERROR] LLM failed: {e}"
 
-    answer = response.choices[0].text.strip()
-    return answer
 
 
 
@@ -40,7 +40,12 @@ layout = [
 window = sg.Window("23 Ventures Assistant", layout)
 
 while True:
-    event, values = window.read()
+    try:
+        event, values = window.read()
+    except Exception as e:
+        sg.popup_error(f"GUI Error: {e}")
+    continue
+
     if event in (sg.WIN_CLOSED, "Exit"):
         break
 
@@ -78,10 +83,11 @@ while True:
 
 
     if event == "Process":
-        raw_path = values["-FILE-"]
-        if not raw_path:
-            sg.popup("Please select a file first.")
-            continue
+        try:
+            raw_path = values["-FILE-"]
+            if not raw_path:
+                sg.popup("Please select a file first.")
+                continue
 
         # Compute storage paths
         from datetime import date
@@ -111,6 +117,8 @@ while True:
         build_faiss_index()
 
         sg.popup(f"Done!\nTranscript: {txt}\nSummary: {summ}")
+        except Exception as e:
+            sg.popup_error(f"[ERROR] Processing failed: {e}")
 
     if event == "Refresh All Indexes":
         sg.popup("Refreshing all FAISS indexes…")
