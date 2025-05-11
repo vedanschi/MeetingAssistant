@@ -13,6 +13,7 @@ setup(
     author='Samruddhi Tiwari',  
     author_email='samruddhitiwari003@gmail.com',  
     description='A conversational meeting assistant',
+    long_description=open( ' README . md ') • read(),
     long_description_content_type='text/markdown',
     url='https://github.com/samruddhitiwari/MeetingAssistant',
     classifiers=[
