@@ -1,9 +1,9 @@
 import PySimpleGUI as sg
 import subprocess, os
-from modules.transcribe import transcribe
-from modules.summarize  import summarize
-from modules.search import build_faiss_index, query_faiss
-from modules.query_parser import extract_keywords
+from transcribe import transcribe
+from summarize  import summarize
+from search import build_faiss_index, query_faiss
+from query_parser import extract_keywords
 import openai
 openai.api_key = 'openai-api-key'
 def generate_answer_with_llm(query, context):
@@ -44,7 +44,7 @@ while True:
         event, values = window.read()
     except Exception as e:
         sg.popup_error(f"GUI Error: {e}")
-    continue
+        continue
 
     if event in (sg.WIN_CLOSED, "Exit"):
         break
@@ -82,43 +82,45 @@ while True:
         window["-RESULTS-"].update(answer)
 
 
-    if event == "Process":
-        try:
-            raw_path = values["-FILE-"]
-            if not raw_path:
-                sg.popup("Please select a file first.")
-                continue
+        if event == "Process":
+            try:
+                raw_path = values["-FILE-"]
+                if not raw_path:
+                    sg.popup("Please select a file first.")
+                    continue
+
+
 
         # Compute storage paths
-        from datetime import date
-        from pathlib   import Path
-        today = date.today()
-        slug  = Path(raw_path).stem
-        base  = Path("meetings")/f"{today.year}"/f"{today:%m}"/f"{today:%d}-{slug}"
-        raw_dst = base/Path(raw_path).name
-        txt     = base/"transcript.txt"
-        summ    = base/"summary.txt"
-        os.makedirs(base, exist_ok=True)
+                from datetime import date
+                from pathlib   import Path
+                today = date.today()
+                slug  = Path(raw_path).stem
+                base  = Path("meetings")/f"{today.year}"/f"{today:%m}"/f"{today:%d}-{slug}"
+                raw_dst = base/Path(raw_path).name
+                txt     = base/"transcript.txt"
+                summ    = base/"summary.txt"
+                os.makedirs(base, exist_ok=True)
 
-        # Copy raw file
-        sg.popup("Copying file…")
-        subprocess.run(["cp", raw_path, str(raw_dst)])
+                # Copy raw file
+                sg.popup("Copying file…")
+                subprocess.run(["cp", raw_path, str(raw_dst)])
 
-        # Transcribe
-        sg.popup("Transcribing…")
-        transcribe(str(raw_dst), str(txt))
+                # Transcribe
+                sg.popup("Transcribing…")
+                transcribe(str(raw_dst), str(txt))
 
-        # Summarize
-        sg.popup("Summarizing…")
-        summarize(str(txt), str(summ))
+                # Summarize
+                sg.popup("Summarizing…")
+                summarize(str(txt), str(summ))
 
-        # 🧠 Build FAISS index after summarization
-        sg.popup("Updating search index…")
-        build_faiss_index()
+                # 🧠 Build FAISS index after summarization
+                sg.popup("Updating search index…")
+                build_faiss_index()
 
-        sg.popup(f"Done!\nTranscript: {txt}\nSummary: {summ}")
-        except Exception as e:
-            sg.popup_error(f"[ERROR] Processing failed: {e}")
+                sg.popup(f"Done!\nTranscript: {txt}\nSummary: {summ}")
+            except Exception as e:
+                sg.popup_error(f"[ERROR] Processing failed: {e}")
 
     if event == "Refresh All Indexes":
         sg.popup("Refreshing all FAISS indexes…")
