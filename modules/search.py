@@ -1,88 +1,106 @@
-import faiss
 import os
 import pickle
 from pathlib import Path
-from modules.embed import load_embedder
+from datetime import datetime
+import faiss
+import numpy as np
+from sentence_transformers import SentenceTransformer
 
-INDEX_PATH = "index/faiss.index"
-META_PATH = "index/metadata.pkl"
+INDEX_DIR = Path("index")
+INDEX_PATH = INDEX_DIR / "faiss.index"
+META_PATH = INDEX_DIR / "metadata.pkl"
+EMBED_MODEL = "all-MiniLM-L6-v2"
+embedder = SentenceTransformer(EMBED_MODEL)
 
-try:
-    embedder = load_embedder()
-except Exception as e:
-    raise RuntimeError(f"Failed to load embedder: {e}")
+def build_faiss_index():
+    """Build search index with proper date parsing and deduplication"""
+    INDEX_DIR.mkdir(exist_ok=True)
+    docs, metas = [], []
 
-def build_faiss_index(meeting_base="meetings"):
-    """
-    Walk through all meeting summaries and build a FAISS index.
-    Stores vectors and metadata.
-    """
-    try:
-        documents = []
-        metadata = []
+    for summ in Path("meetings").rglob("summary.txt"):
+        try:
+            parts = summ.parts
+            if len(parts) < 4:
+                continue  # Skip invalid paths
 
-        if not os.path.exists(meeting_base):
-            raise FileNotFoundError(f"Directory '{meeting_base}' does not exist.")
+            # Parse date from directory structure
+            year, month, day_slug = parts[1], parts[2], parts[3]
+            day = day_slug.split("-", 1)[0]
+            
+            # Read summary content
+            content = summ.read_text(encoding="utf-8").strip()
+            if not content:
+                continue
 
-        for root, _, files in os.walk(meeting_base):
-            for file in files:
-                if file == "summary.txt":
-                    file_path = Path(root) / file
-                    try:
-                        with open(file_path, encoding="utf-8") as f:
-                            text = f.read()
-                        documents.append(text)
-                        metadata.append({
-                            "path": str(file_path),
-                            "year": file_path.parts[1] if len(file_path.parts) > 1 else "",
-                            "month": file_path.parts[2] if len(file_path.parts) > 2 else "",
-                            "slug": file_path.parts[3] if len(file_path.parts) > 3 else "",
-                        })
-                    except Exception as e:
-                        print(f"[!] Failed to read {file_path}: {e}")
+            # Create unique meeting ID
+            meeting_id = f"{year}-{month}-{day}-{summ.parent.name}"
+            
+            metas.append({
+                "id": meeting_id,
+                "date": datetime(int(year), int(month), int(day)).isoformat(),
+                "year": year,
+                "month": month,
+                "day": day,
+                "slug": summ.parent.name,
+                "content": content,
+                "path": str(summ)
+            })
+            docs.append(content)
+            
+        except (ValueError, IndexError) as e:
+            print(f"Skipping invalid file {summ}: {e}")
+            continue
 
-        if not documents:
-            raise ValueError("No summaries found to index.")
+    if not docs:
+        raise RuntimeError("No valid summaries found in meetings directory")
 
-        vectors = embedder.encode(documents)
-        index = faiss.IndexFlatL2(vectors.shape[1])
-        index.add(vectors)
+    # Create FAISS index
+    embs = embedder.encode(docs, convert_to_numpy=True)
+    index = faiss.IndexFlatL2(embs.shape[1])
+    index.add(embs)
+    
+    # Save index and metadata
+    faiss.write_index(index, str(INDEX_PATH))
+    with open(META_PATH, "wb") as f:
+        pickle.dump(metas, f)
 
-        os.makedirs("index", exist_ok=True)
-        faiss.write_index(index, INDEX_PATH)
-        with open(META_PATH, "wb") as f:
-            pickle.dump(metadata, f)
+    print(f"Indexed {len(docs)} meetings with {embs.shape[1]}D embeddings")
 
-        print(f"[✓] Indexed {len(documents)} summaries.")
+def query_faiss(query: str, k: int = 5) -> list[dict]:
+    """Search with date filtering and proper deduplication"""
+    if not INDEX_PATH.exists():
+        raise FileNotFoundError("Index not found - run build_faiss_index() first")
 
-    except Exception as e:
-        raise RuntimeError(f"build_faiss_index failed: {e}")
+    # Load index and metadata
+    index = faiss.read_index(str(INDEX_PATH))
+    with open(META_PATH, "rb") as f:
+        metas = pickle.load(f)
 
+    # Encode query and search
+    query_emb = embedder.encode([query], convert_to_numpy=True)
+    distances, indices = index.search(query_emb, k)
 
-def query_faiss(query, k=5):
-    """
-    Query the FAISS index for top-k similar summaries.
-    Returns metadata with similarity scores.
-    """
-    try:
-        if not Path(INDEX_PATH).exists() or not Path(META_PATH).exists():
-            raise FileNotFoundError("FAISS index or metadata not found. Run build_faiss_index() first.")
+    # Process results with deduplication
+    seen = set()
+    results = []
+    for dist, idx in zip(distances[0], indices[0]):
+        if idx >= len(metas):
+            continue
+            
+        entry = metas[idx].copy()
+        entry["score"] = float(dist)
+        
+        # Deduplicate by meeting ID
+        if entry["id"] not in seen:
+            seen.add(entry["id"])
+            results.append(entry)
+            
+        if len(results) >= k:
+            break
 
-        index = faiss.read_index(INDEX_PATH)
-        with open(META_PATH, "rb") as f:
-            metadata = pickle.load(f)
-
-        query_vec = embedder.encode([query])
-        D, I = index.search(query_vec, k)
-
-        results = []
-        for score, idx in zip(D[0], I[0]):
-            if idx < len(metadata):
-                result = metadata[idx]
-                result["score"] = float(score)
-                results.append(result)
-
-        return results
-
-    except Exception as e:
-        raise RuntimeError(f"query_faiss failed: {e}")
+    # Sort by date descending
+    return sorted(
+        results,
+        key=lambda x: x["date"],
+        reverse=True
+    )[:k]
