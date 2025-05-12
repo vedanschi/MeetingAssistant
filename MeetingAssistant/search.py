@@ -2,7 +2,7 @@ import faiss
 import os
 import pickle
 from pathlib import Path
-from modules.embed import load_embedder
+from embed import load_embedder
 
 INDEX_PATH = "index/faiss.index"
 META_PATH = "index/metadata.pkl"
