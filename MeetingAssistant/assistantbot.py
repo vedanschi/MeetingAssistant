@@ -7,9 +7,9 @@ from telegram import Update, ChatAction
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 
 # Import modules from the MeetingAssistant project
-from modules.transcription import transcribe
-from modules.summarization import summarize
-from modules.search import search
+from transcription import transcribe
+from summarization import summarize
+from search import search
 
 # --- Configuration placeholders ---
 TELEGRAM_BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN_HERE"  # <-- Set your bot token
