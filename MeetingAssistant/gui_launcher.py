@@ -8,9 +8,9 @@ from datetime import datetime
 import PySimpleGUI as sg
 
 # Import the project modules
-import modules.transcribe as transcription
-import modules.summarize as summarization
-import modules.search as search_module
+import transcribe as transcription
+import summarize as summarization
+import search as search_module
 
 # Ensure required directories exist
 os.makedirs('meetings', exist_ok=True)
