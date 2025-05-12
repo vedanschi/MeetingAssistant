@@ -3,10 +3,18 @@
 
 a = Analysis(
     ['app.py'],
-    pathex=[],
-    binaries=[],
-    datas=[('modules', 'modules'), ('models', 'models'), ('meetings', 'meetings')],
-    hiddenimports=[],
+    pathex=['.'],
+    binaries=[
+        ('whisper.cpp/build/bin/whisper-cli', 'whisper-cli'),
+    ],
+    datas=[
+        ('modules', 'modules'),
+        ('models', 'models'),
+        ('meetings', 'meetings'),
+        ('.env', '.'),
+        ('whisper.cpp/build/bin/whisper-cli', 'whisper-cli'),  # Add Whisper binary
+    ],
+    hiddenimports=['faiss', 'llama_cpp', 'sentence_transformers', 'spacy'],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
@@ -32,7 +40,7 @@ exe = EXE(
     console=False,
     disable_windowed_traceback=False,
     argv_emulation=False,
-    target_arch=None,
+    target_arch='x86_64',
     codesign_identity=None,
     entitlements_file=None,
 )

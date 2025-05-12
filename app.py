@@ -5,7 +5,16 @@ from modules.summarize  import summarize
 from modules.search import build_faiss_index, query_faiss
 from modules.query_parser import extract_keywords
 import openai
-openai.api_key = 'openai-api-key'
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
+
+# Set OpenAI API key
+openai.api_key = os.getenv("OPENAI_API_KEY")
+if not openai.api_key:
+    raise ValueError("OPENAI_API_KEY is not set in the environment variables.")
+
 def generate_answer_with_llm(query, context):
     """
     Generates an answer from the LLM (e.g., GPT-3) based on the retrieved context.

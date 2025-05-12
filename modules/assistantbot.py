@@ -7,12 +7,14 @@ from telegram import Update, ChatAction
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 
 # Import modules from the MeetingAssistant project
-from modules.transcription import transcribe
-from modules.summarization import summarize
+from modules.transcribe import transcribe
+from modules.summarize import summarize
 from modules.search import search
 
 # --- Configuration placeholders ---
-TELEGRAM_BOT_TOKEN = "YOUR_TELEGRAM_BOT_TOKEN_HERE"  # <-- Set your bot token
+TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+if not TELEGRAM_BOT_TOKEN:
+    raise ValueError("TELEGRAM_BOT_TOKEN is not set in the environment variables.")
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
