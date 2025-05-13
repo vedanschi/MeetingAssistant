@@ -25,17 +25,30 @@ pip install MeetingAssistant==0.1.1
 
 ## Screenshots / Demo
 
-<p align="center">
+<div align="center">
+  <img src="images/gui-screenshot.png](https://github.com/vedanschi/MeetingAssistant/blob/master/img/launchbot.jpeg">
+  <br>
+  <em>Desktop Interface - Manage meetings and search through transcripts</em>
+</div>
 
-* ![MeetingAssistant Desktop GUI screenshot](https://github.com/vedanschi/MeetingAssistant/blob/master/img/launchbot.jpeg)
-
-  **Desktop GUI Screenshot**
+<div align="center">
+  <img src="https://github.com/vedanschi/MeetingAssistant/blob/master/img/telegrambot.jpeg">
+  <br>
+  <em>Telegram Bot - Process voice notes and query meetings on mobile</em>
+</div>
 
   
-* ![MeetingAssistant Telegram bot screenshot](https://github.com/vedanschi/MeetingAssistant/blob/master/img/telegrambot.jpeg)
-
-  **Telegram Bot Screenshot**
-</p>  
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="https://github.com/vedanschi/MeetingAssistant/blob/master/img/transcription.jpeg">
+        <br>
+        <strong>Live Transcription</strong>
+      </td>
+    </tr>
+  </table>
+</div> 
 
 ## Full Setup
 ### Install System Dependencies
