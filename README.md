@@ -25,15 +25,17 @@ pip install MeetingAssistant==0.1.1
 
 ## Screenshots / Demo
 
-
+<p align="center">
 
 * ![MeetingAssistant Desktop GUI screenshot](https://github.com/vedanschi/MeetingAssistant/blob/master/img/launchbot.jpeg)
+
   **Desktop GUI Screenshot**
 
   
 * ![MeetingAssistant Telegram bot screenshot](https://github.com/vedanschi/MeetingAssistant/blob/master/img/telegrambot.jpeg)
+
   **Telegram Bot Screenshot**
-  
+</p>  
 
 ## Full Setup
 ### Install System Dependencies
