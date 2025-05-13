@@ -25,10 +25,15 @@ pip install MeetingAssistant==0.1.1
 
 ## Screenshots / Demo
 
-*Screenshots/Demo GIFs coming soon. Placeholder images below.*
 
-* ![MeetingAssistant Desktop GUI screenshot](https://github.com/vedanschi/MeetingAssistant/blob/master/img/launchbot.jpeg) 
-* ![MeetingAssistant Telegram bot screenshot](https://github.com/vedanschi/MeetingAssistant/blob/master/img/telegrambot.jpeg) 
+
+* ![MeetingAssistant Desktop GUI screenshot](https://github.com/vedanschi/MeetingAssistant/blob/master/img/launchbot.jpeg)
+  **Desktop GUI Screenshot**
+
+  
+* ![MeetingAssistant Telegram bot screenshot](https://github.com/vedanschi/MeetingAssistant/blob/master/img/telegrambot.jpeg)
+  **Telegram Bot Screenshot**
+  
 
 ## Full Setup
 ### Install System Dependencies
@@ -113,4 +118,5 @@ MIT License - See LICENSE for details
 
 This project is licensed under the [MIT License](LICENSE). All code, documentation, and data formats are available under MIT terms.
 
-**Acknowledgments:** MeetingAssistant leverages [whisper.cpp](https://github.com/ggerganov/whisper.cpp) for fast transcription,[DistilBART-CNN-12-6](https://huggingface.co/sshleifer/distilbart-cnn-12-6) from Hugging Face for summarization, and [FAISS](https://github.com/facebookresearch/faiss) for semantic search indexing. These powerful open-source components enable MeetingAssistant to operate entirely offline.
+## Acknowledgments:
+MeetingAssistant leverages [whisper.cpp](https://github.com/ggerganov/whisper.cpp) for fast transcription,[DistilBART-CNN-12-6](https://huggingface.co/sshleifer/distilbart-cnn-12-6) from Hugging Face for summarization, and [FAISS](https://github.com/facebookresearch/faiss) for semantic search indexing. These powerful open-source components enable MeetingAssistant to operate entirely offline.
