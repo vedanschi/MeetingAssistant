@@ -1,5 +1,6 @@
 # webhook_listener.py
 from fastapi import FastAPI, Request
+from my_package.scheduler import schedule_meeting_recording
 import uvicorn
 
 app = FastAPI()
@@ -8,12 +9,13 @@ app = FastAPI()
 async def receive_webhook(request: Request):
     payload = await request.json()
     print(payload)
-    
+
     event_type = payload.get('event')
     if event_type == "invitee.created":
-        # extract start time, save it, schedule recording
-        print("Meeting Scheduled:", payload['payload']['event']['start_time'])
-    
+        meeting_time = payload['payload']['event']['start_time']  # ISO 8601
+        print("Meeting Scheduled at:", meeting_time)
+        schedule_meeting_recording(meeting_time)
+
     return {"status": "ok"}
 
 if __name__ == "__main__":
