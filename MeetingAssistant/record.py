@@ -15,8 +15,18 @@ def send_to_telegram(file_path):
         }, files={"video": video})
     if response.status_code == 200:
         print("✅ Uploaded to Telegram.")
+        notify_user()
     else:
         print(f"❌ Failed to upload: {response.text}")
+
+def notify_user():
+    msg_url = f"https://api.telegram.org/bot{TELEGRAM_TOKEN}/sendMessage"
+    payload = {
+        "chat_id": CHAT_ID,
+        "text": "✅ Your meeting recording has been uploaded. You can now ask questions or get a summary."
+    }
+    requests.post(msg_url, data=payload)
+
 
 def record_screen():
     filename = f"meeting_recording_{datetime.now().strftime('%Y%m%d_%H%M%S')}.mp4"
