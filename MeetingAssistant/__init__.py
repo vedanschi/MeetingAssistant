@@ -1,0 +1,1 @@
+"""MeetingAssistant package initializer."""
