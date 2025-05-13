@@ -1,35 +1,57 @@
+from datetime import datetime
 import spacy
 import dateparser
-from datetime import datetime
+from typing import Optional, Dict, List, Tuple
+import logging
 
-# Load spaCy model
 nlp = spacy.load("en_core_web_sm")
 
-def parse_date(query):
+def parse_query(query: str) -> Dict[str, List[Tuple[datetime, datetime]]]:
     """
-    Parse dates from the query using dateparser.
+    Returns structured date ranges and keywords from query.
+    Handles both absolute and relative dates.
     """
-    parsed_date = dateparser.parse(query)
-    return parsed_date if parsed_date else None
-
-def extract_keywords(query):
-    """
-    Extract keywords like date references, topics, and actions from the query.
-    """
-    # Process the query with spaCy
     doc = nlp(query)
-
-    # Extract dates
-    dates = [ent.text for ent in doc.ents if ent.label_ == "DATE"]
-    actions = [token.text for token in doc if token.pos_ == "VERB"]
-    topics = [ent.text for ent in doc.ents if ent.label_ == "ORG" or ent.label_ == "PRODUCT"]  # You can also add other entity types like "GPE" for locations
-
-    # Use dateparser to find any implicit date references in the query
-    parsed_date = parse_date(query)
-    
-    return {
-        "dates": dates if dates else [parsed_date],  # Default to parsed date if none are found
-        "actions": actions,
-        "topics": topics
+    results = {
+        "date_ranges": [],
+        "actions": [],
+        "topics": []
     }
 
+    # Extract date expressions and parse to date ranges
+    date_expressions = [ent.text for ent in doc.ents if ent.label_ == "DATE"]
+    
+    # Fallback to full query parsing if no dates found
+    if not date_expressions:
+        date_expressions = [query]
+        
+    for expr in date_expressions:
+        try:
+            # Get date range (start/end) for expression
+            parsed = dateparser.parse(
+                expr,
+                settings={
+                    'PREFER_DATES_FROM': 'future',
+                    'RETURN_AS_TIMEZONE_AWARE': False
+                }
+            )
+            
+            if parsed:
+                # Handle single date vs date ranges
+                if " to " in expr or "-" in expr:
+                    start_end = [dateparser.parse(p) for p in expr.split(" to ")]
+                    if len(start_end) == 2 and all(start_end):
+                        results["date_ranges"].append((start_end[0], start_end[1]))
+                else:
+                    results["date_ranges"].append((parsed, parsed))
+        except Exception as e:
+            logging.error(f"Date parsing error: {e}")
+
+    # Extract other entities
+    results["actions"] = [tok.lemma_ for tok in doc if tok.pos_ == "VERB"]
+    results["topics"] = [
+        ent.text for ent in doc.ents 
+        if ent.label_ in {"ORG", "PRODUCT", "GPE", "EVENT"}
+    ]
+
+    return results

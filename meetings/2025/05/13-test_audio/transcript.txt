@@ -1,0 +1,26 @@
+ This meeting will be about the workflow of Cognition 4.0 which is an event organized
+ by UPSMTC and it is a month or two month long boot camp where we take a specific skill
+ and teacher to the people. So, for the workflow of the event phase 1 would be preparation that
+ would last from May 26 to May 31st and the goal will be to finalize all content structure
+ and back end logistics. Some things that consist of that will be finalized co-structure for
+ the react native boot camp, create posters, reels and other promotional material, prepare
+ speaker list and confirm availability and assign back end teams for speaker and tech
+ support and also registration handling. Design and finalize registration forms, draft mailers
+ for PR and ensure all materials are ready for public release by May 31st. Then we will
+ have phase 2 which is promotions and registrations from June 1st to June 9th and the goal will
+ be to promote the event handle registrations and test everything. So, June 1st would be
+ the launch day where we will start the official PR campaign and send mail to all MTC members
+ and Poonamam who will circulate it to the school of computer science mailing list and
+ then we will post the promotional reason stories on Instagram and start regular posting about
+ countdown and speakers. June 1st to June 9th is the registration week and we will promote
+ the event daily via Instagram WhatsApp and MTC networks. Then we will conduct practice
+ and tech testing sessions with the speakers on MS teams and we will check screen share,
+ mic, cam and internet and we will ensure familiarity with the session flow. The final
+ back end checklist would be presentation files from the all speakers attendance and feedback
+ forms should be ready and timetables, calendars should be shared with the registrants and volunteer
+ tasks would be clearly assigned. Then we would have phase 3 which is the event launch that
+ would be on June 10th and the goal would be the seamless launch of Cognition 4.0 mobile
+ development bootcamp. So it will start with a welcome and orientation session and we will
+ begin the React Native Bootcamp and we will ensure tech support team is online during
+ all of the sessions and then we will finally post the kickoff update on Instagram. That's
+ all for this meeting. Thank you for attending.

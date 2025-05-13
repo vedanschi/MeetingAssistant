@@ -1,137 +1,107 @@
-import PySimpleGUI as sg
-import subprocess, os
+import sys
+sys.dont_write_bytecode = True 
+import os
+import sys
+import shutil
+import subprocess
+import webbrowser
+from datetime import date
+from pathlib import Path
+import tkinter as tk
+from tkinter import ttk, filedialog, scrolledtext, messagebox
+
+# Your existing imports
 from modules.transcribe import transcribe
-from modules.summarize  import summarize
-from modules.search import build_faiss_index, query_faiss
-from modules.query_parser import extract_keywords
-import openai
-from dotenv import load_dotenv
+from modules.summarize import summarize
+from modules.search import query_faiss, build_faiss_index
 
-# Load environment variables from .env file
-load_dotenv()
+class MeetingAssistant(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("MeetingAssistant")
+        self.bot_proc = None
+        self._create_widgets()
 
-# Set OpenAI API key
-openai.api_key = os.getenv("OPENAI_API_KEY")
-if not openai.api_key:
-    raise ValueError("OPENAI_API_KEY is not set in the environment variables.")
+    def _create_widgets(self):
+        # Telegram Bot Section
+        bot_frame = ttk.LabelFrame(self, text="Telegram Bot")
+        bot_frame.grid(row=0, column=0, padx=10, pady=5, sticky="ew")
 
-def generate_answer_with_llm(query, context):
-    """
-    Generates an answer from the LLM (e.g., GPT-3) based on the retrieved context.
-    """
-    prompt = f"Question: {query}\n\nContext: {context}\n\nAnswer:"
-    try:
-        response = openai.Completion.create(
-            engine="text-davinci-003",
-            prompt=prompt,
-            max_tokens=150,
-            temperature=0.7
-        )
-        answer = response.choices[0].text.strip()
-        return answer
-    except Exception as e:
-        return f"[ERROR] LLM failed: {e}"
+        ttk.Button(bot_frame, text="Launch Bot", command=self.launch_bot).grid(row=0, column=0)
+        link = ttk.Label(bot_frame, text="t.me/twenty_three_ventures_bot", foreground="blue", cursor="hand2")
+        link.grid(row=0, column=1, padx=10)
+        link.bind("<Button-1>", lambda e: webbrowser.open("https://t.me/twenty_three_ventures_bot"))
 
+        # File Processing Section
+        file_frame = ttk.LabelFrame(self, text="Process Meeting")
+        file_frame.grid(row=1, column=0, padx=10, pady=5, sticky="ew")
 
+        self.title_entry = ttk.Entry(file_frame, width=30)
+        self.title_entry.grid(row=0, column=0, padx=5)
+        ttk.Button(file_frame, text="Browse", command=self.browse_file).grid(row=0, column=1)
+        ttk.Button(file_frame, text="Process", command=self.process_file).grid(row=1, column=0, pady=5)
 
+        # Log and Results
+        self.log_area = scrolledtext.ScrolledText(self, width=80, height=10, state="disabled")
+        self.log_area.grid(row=2, column=0, padx=10, pady=5)
 
+        # Search Section
+        search_frame = ttk.Frame(self)
+        search_frame.grid(row=3, column=0, padx=10, pady=5, sticky="ew")
 
-# 1️⃣ Define the window layout
-layout = [
-    [sg.Text("Meeting Assistant")],
-    [sg.Input(key="-FILE-"), sg.FileBrowse(file_types=(("Audio/Video", "*.wav;*.mp4"), ("All", "*.*")))],
-    [sg.Button("Process"), sg.Button("Search Index"), sg.Exit()],
-    [sg.Text("Query:"), sg.Input(key="-SEARCH-"), sg.Button("Search")],
-    [sg.Multiline(size=(70, 10), key="-RESULTS-")],
-]
+        self.search_entry = ttk.Entry(search_frame, width=50)
+        self.search_entry.grid(row=0, column=0)
+        ttk.Button(search_frame, text="Search", command=self.search).grid(row=0, column=1, padx=5)
+        self.result_area = scrolledtext.ScrolledText(self, width=80, height=10, state="disabled")
+        self.result_area.grid(row=4, column=0, padx=10, pady=5)
 
-# 2️⃣ Create the window
-window = sg.Window("23 Ventures Assistant", layout)
+    def log(self, message):
+        self.log_area.config(state="normal")
+        self.log_area.insert(tk.END, message + "\n")
+        self.log_area.config(state="disabled")
+        self.log_area.see(tk.END)
 
-while True:
-    try:
-        event, values = window.read()
-    except Exception as e:
-        sg.popup_error(f"GUI Error: {e}")
-    continue
-
-    if event in (sg.WIN_CLOSED, "Exit"):
-        break
-
-
-    if event == "Search":
-        query_text = values["-SEARCH-"].strip()
-        if not query_text:
-            sg.popup("Please enter a search query.")
-            continue
-
-    # Step 1: Parse the query for keywords (dates, actions, topics)
-    sg.popup("Parsing query...")
-    keywords = extract_keywords(query_text)
-
-    # Display parsed keywords
-    date_text = ", ".join(keywords["dates"]) if keywords["dates"] else "No date found."
-    action_text = ", ".join(keywords["actions"]) if keywords["actions"] else "No actions found."
-    topic_text = ", ".join(keywords["topics"]) if keywords["topics"] else "No topics found."
-
-    result_text = f"Dates: {date_text}\nActions: {action_text}\nTopics: {topic_text}"
-
-    # Update the result panel with parsed query information
-    window["-RESULTS-"].update(result_text)
-
-    # Step 2: Perform FAISS search
-    sg.popup("Searching…")
-    results = query_faiss(query_text, k=5)
-    if not results:
-        window["-RESULTS-"].update("No matching meetings found.")
-    else:
-        context = "\n".join([r['content'] for r in results[:3]])  
-        sg.popup("Generating answer...")
-        answer = generate_answer_with_llm(query_text, context)
-        window["-RESULTS-"].update(answer)
-
-
-    if event == "Process":
+    def launch_bot(self):
         try:
-            raw_path = values["-FILE-"]
-            if not raw_path:
-                sg.popup("Please select a file first.")
-                continue
-
-        # Compute storage paths
-        from datetime import date
-        from pathlib   import Path
-        today = date.today()
-        slug  = Path(raw_path).stem
-        base  = Path("meetings")/f"{today.year}"/f"{today:%m}"/f"{today:%d}-{slug}"
-        raw_dst = base/Path(raw_path).name
-        txt     = base/"transcript.txt"
-        summ    = base/"summary.txt"
-        os.makedirs(base, exist_ok=True)
-
-        # Copy raw file
-        sg.popup("Copying file…")
-        subprocess.run(["cp", raw_path, str(raw_dst)])
-
-        # Transcribe
-        sg.popup("Transcribing…")
-        transcribe(str(raw_dst), str(txt))
-
-        # Summarize
-        sg.popup("Summarizing…")
-        summarize(str(txt), str(summ))
-
-        # 🧠 Build FAISS index after summarization
-        sg.popup("Updating search index…")
-        build_faiss_index()
-
-        sg.popup(f"Done!\nTranscript: {txt}\nSummary: {summ}")
+            if not self.bot_proc or self.bot_proc.poll() is not None:
+                self.bot_proc = subprocess.Popen(
+                    [sys.executable, "assistantbot.py"],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                    start_new_session=True
+                )
+                self.log("Telegram bot launched. Connect at:")
+                self.log("👉 https://t.me/twenty_three_ventures_bot")
+            else:
+                self.log("Bot already running.")
         except Exception as e:
-            sg.popup_error(f"[ERROR] Processing failed: {e}")
+            self.log(f"Error launching bot: {e}")
 
-    if event == "Refresh All Indexes":
-        sg.popup("Refreshing all FAISS indexes…")
-        build_faiss_index()  
-        sg.popup("All indexes have been refreshed.")
+    def browse_file(self):
+        path = filedialog.askopenfilename(
+            filetypes=(("Media Files", "*.wav;*.mp3;*.mp4"),)
+        )
+        if path:
+            self.title_entry.delete(0, tk.END)
+            self.title_entry.insert(0, Path(path).stem)
 
-window.close()
+    def process_file(self):
+        path = self.title_entry.get()
+        if not path or not Path(path).exists():
+            messagebox.showerror("Error", "Select a valid file first.")
+            return
+
+        # ... (rest of your existing process_file logic, replacing `window['-LOG-'].print` with `self.log()`)
+
+    def search(self):
+        query = self.search_entry.get().strip()
+        if not query:
+            messagebox.showinfo("Info", "Enter a search query.")
+            return
+        self.log(f"Searching for '{query}'...")
+        results = query_faiss(query, k=5)
+        # ... (update results area)
+
+if __name__ == "__main__":
+    app = MeetingAssistant()
+    app.mainloop()
