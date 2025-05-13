@@ -32,18 +32,18 @@ pip install MeetingAssistant==0.1.1
 ### Full Setup
 Install System Dependencies
 
-bash
+```bash
 # Windows
 winget install -e --id Kitware.CMake
 Build Whisper.cpp
 
-bash
+```bash
 git clone https://github.com/ggerganov/whisper.cpp
 cd whisper.cpp && mkdir build && cd build
 cmake .. && cmake --build . --config Release
 Download Models
 
-bash
+```bash
 # Whisper base.en model
 curl -LO https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.en.bin
 
@@ -52,23 +52,23 @@ mkdir -p ~/.MeetingAssistant/models
 mv ggml-base.en.bin ~/.MeetingAssistant/models/
 Set Up Telegram Bot (Optional)
 
-bash
+```bash
 export TELEGRAM_BOT_TOKEN="your_bot_token_here"
-Usage
-Desktop GUI
-bash
+
+### Usage
+# Desktop GUI
+```bash
 meeting-assistant gui
-Desktop Interface
 
-Telegram Bot
-bash
+# Telegram Bot
+```bash
 meeting-assistant telegram
-Telegram Interface
 
-Command Line
-bash
+
+# Command Line
+```bash
 # Process a meeting file
-meeting-assistant process meeting.mp4
+meeting-assistant process meeting.mp3
 
 # Search previous meetings
 meeting-assistant search "project timeline"
@@ -84,14 +84,15 @@ Folder Structure
 │   │   └── summary.txt
 
 ### Environment Variables
-bash
+```bash
 # Custom model paths
 export WHISPER_MODEL_PATH="~/custom_models/ggml-large-v3.bin"
 
 ### Disable Telegram bot
 export DISABLE_TELEGRAM=1
+
 Development
-bash
+```bash
 git clone https://github.com/vedanschi/MeetingAssistant.git
 cd MeetingAssistant
 pip install -e .
