@@ -1,5 +1,3 @@
-
-
 import os
 import re
 import datetime
@@ -7,8 +5,8 @@ from telegram import Update, ChatAction
 from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 
 # Import modules from the MeetingAssistant project
-from transcription import transcribe
-from summarization import summarize
+from transcribe import transcribe
+from summarize import summarize
 from search import search
 
 # --- Configuration placeholders ---
