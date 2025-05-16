@@ -88,6 +88,7 @@ pip install MeetingAssistant==0.1.1
 # Example recording command
 ffmpeg -f gdigrab -framerate 30 -i desktop -f dshow -i audio="Microphone Array" \
        -c:v libx264 -preset ultrafast -crf 23 -c:a aac -b:a 128k output.mp4
+```
 
 ## Full Setup
 ### Install System Dependencies
