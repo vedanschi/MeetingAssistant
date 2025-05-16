@@ -54,6 +54,41 @@ pip install MeetingAssistant==0.1.1
 
 
 
+### 🖥️ Screen Recording Workflow
+
+<div align="center">
+  <img src="img/recordinggui.jpeg">
+  <br>
+  <em>Recording Interface - Launch screen recordings directly from the GUI</em>
+</div>
+
+<div align="center">
+  <table>
+    <tr>
+      <td align="center">
+        <img src="img/recordingstart.jpeg">
+        <br>
+        <strong>Recording Initialization</strong>
+        <br>
+        Console output showing FFmpeg configuration
+      </td>
+      <td align="center">
+        <img src="img/recordingend.jpeg">
+        <br>
+        <strong>Recording Completion</strong>
+        <br>
+        Successful meeting capture confirmation
+      </td>
+    </tr>
+  </table>
+</div>
+
+### Key Technical Specifications
+```bash
+# Example recording command
+ffmpeg -f gdigrab -framerate 30 -i desktop -f dshow -i audio="Microphone Array" \
+       -c:v libx264 -preset ultrafast -crf 23 -c:a aac -b:a 128k output.mp4
+
 ## Full Setup
 ### Install System Dependencies
 
